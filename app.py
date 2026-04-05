@@ -399,34 +399,14 @@ def initialize_rag(pdf_path, raw_api_key):
 import streamlit.components.v1 as components
 
 def display_pdf_viewer(file_path):
-    # Intentamos cargar el visor nativo pero optimizado
-    pdf_name = os.path.basename(file_path)
-    
-    # RUTA OFICIAL DE STREAMLIT PARA ARCHIVOS ESTATICOS
-    # Nota: Si el visor sigue en blanco, es bloqueo de Chrome/Edge
-    pdf_url = f"/static/{pdf_name}"
-
-    st.info("💡 **Consejo:** Si el visor de abajo no aparece o dice 'Bloqueado', haz clic en el botón de la derecha para abrir el manual en una pestaña nueva.")
-    
-    col_v, col_d = st.columns([4, 1])
-    
-    with col_v:
-        # Usamos OBJECT en vez de IFRAME (A veces Chrome lo prefiere)
-        st.markdown(f"""
-            <div class="pdf-container" style="background: black; padding: 2px; border-radius: 12px; border: 1px solid #D4AF37;">
-                <object data="{pdf_url}" type="application/pdf" width="100%" height="850px">
-                    <embed src="{pdf_url}" type="application/pdf" />
-                </object>
-            </div>
-        """, unsafe_allow_html=True)
-        
-    with col_d:
-        with open(file_path, "rb") as f:
-            st.download_button("📥 Descargar", f, f"{pdf_name}", "application/pdf")
-        
-        # LINK DIRECTO: Esta es la clave. Si el visor falla, este botón lo abre en pestaña nueva sin errores.
-        st.link_button("📖 Ver Pantalla Completa", pdf_url)
-
+    try:
+        # Usamos Base64 para el PDF, lo cual garantiza que sea visible sin bloqueos externos
+        # En la nube, es la única forma 100% confiable de embeber PDFs en iframes
+        base64_pdf = get_base64_of_bin_file(file_path)
+        pdf_display = f'<div class="pdf-container"><iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="850px" style="border:none; border-radius:10px;" type="application/pdf"></iframe></div>'
+        st.markdown(pdf_display, unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Error al cargar el visor de PDF (Incrustación): {e}")
 
 # --- APLICACIÓN PRINCIPAL ---
 
