@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Streamlit
+.streamlit/
+!.streamlit/config.toml
+
+# Environment
+.env
+
+# Secrets (DANGER: Do not upload these if they contain real keys)
+credentials.json
+
+# App Specific
+pdf_parts/
+faiss_index/
+*.log
+resize_mascot.py
