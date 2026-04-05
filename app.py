@@ -214,35 +214,45 @@ def load_css():
 load_css()
 
 def add_floating_logo(img_name="Devo3.gif"):
-    # Estrategia "Doble": Archivo técnicamente ligero (25MB) pero agrandado visualmente via CSS
-    # Esto permite que la mascota se vea ENORME (400px) sin pesar 200MB.
-    st.markdown(
-        f"""
-            <style>
-            .chat-companion {{
-                width: 400px;
-                display: block;
-                margin-left: auto;
-                margin-top: -120px !important;
-                filter: drop-shadow(0 0 35px rgba(194, 155, 97, 0.5));
-                animation: float 4s ease-in-out infinite;
-                z-index: 10;
-                /* El renderizado del navegador suaviza los pixeles al agrandar */
-                image-rendering: auto; 
-            }}
-            @keyframes float {{
-                0% {{ transform: translateY(0px) rotate(0deg); }}
-                50% {{ transform: translateY(-15px) rotate(2deg); }}
-                100% {{ transform: translateY(0px) rotate(0deg); }}
-            }}
-            @media (max-width: 768px) {{
-                .chat-companion {{ width: 200px; margin: 0 auto; }}
-            }}
-            </style>
-            <img src="/static/{img_name}" class="chat-companion">
-            """,
-            unsafe_allow_html=True
-        )
+    # Estrategia de Incrustación Base64 definitiva para la Nube
+    # Esto elimina cualquier problema de rutas (/static/ vs /app/static/)
+    try:
+        # Buscamos la imagen en la carpeta static local
+        img_path = os.path.join("static", img_name)
+        if os.path.exists(img_path):
+            base64_img = get_base64_of_bin_file(img_path)
+            prefix = "image/gif" if img_name.endswith(".gif") else "image/avif"
+        else:
+            return # No mostramos nada si no existe el archivo
+            
+        st.markdown(
+            f"""
+                <style>
+                .chat-companion {{
+                    width: 400px;
+                    display: block;
+                    margin-left: auto;
+                    margin-top: -120px !important;
+                    filter: drop-shadow(0 0 35px rgba(194, 155, 97, 0.5));
+                    animation: float 4s ease-in-out infinite;
+                    z-index: 10;
+                    image-rendering: auto; 
+                }}
+                @keyframes float {{
+                    0% {{ transform: translateY(0px) rotate(0deg); }}
+                    50% {{ transform: translateY(-15px) rotate(2deg); }}
+                    100% {{ transform: translateY(0px) rotate(0deg); }}
+                }}
+                @media (max-width: 768px) {{
+                    .chat-companion {{ width: 200px; margin: 0 auto; }}
+                }}
+                </style>
+                <img src="data:{prefix};base64,{base64_img}" class="chat-companion">
+                """,
+                unsafe_allow_html=True
+            )
+    except Exception:
+        pass # Silenciamos errores de carga para no romper la UI
 
 # --- LÓGICA DE PROCESAMIENTO ---
 
@@ -390,12 +400,13 @@ import streamlit.components.v1 as components
 
 def display_pdf_viewer(file_path):
     try:
-        # Most robust way: use the /app/static foldering in Streamlit
-        # This bypasses all security/size limits for local files
-        pdf_name = os.path.basename(file_path)
-        st.markdown(f'<div class="pdf-container"><iframe src="/static/{pdf_name}" width="100%" height="850px" style="border:none; border-radius:10px;"></iframe></div>', unsafe_allow_html=True)
+        # Usamos Base64 para el PDF, lo cual garantiza que sea visible sin bloqueos externos
+        # En la nube, es la única forma 100% confiable de embeber PDFs en iframes
+        base64_pdf = get_base64_of_bin_file(file_path)
+        pdf_display = f'<div class="pdf-container"><iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="850px" style="border:none; border-radius:10px;" type="application/pdf"></iframe></div>'
+        st.markdown(pdf_display, unsafe_allow_html=True)
     except Exception as e:
-        st.error(f"Error al cargar el visor de PDF: {e}")
+        st.error(f"Error al cargar el visor de PDF (Incrustación): {e}")
 
 # --- APLICACIÓN PRINCIPAL ---
 
