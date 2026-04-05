@@ -239,7 +239,7 @@ def add_floating_logo(img_name="Devo3.gif"):
                 .chat-companion {{ width: 200px; margin: 0 auto; }}
             }}
             </style>
-            <img src="app/static/{img_name}" class="chat-companion">
+            <img src="/static/{img_name}" class="chat-companion">
             """,
             unsafe_allow_html=True
         )
@@ -393,7 +393,7 @@ def display_pdf_viewer(file_path):
         # Most robust way: use the /app/static foldering in Streamlit
         # This bypasses all security/size limits for local files
         pdf_name = os.path.basename(file_path)
-        st.markdown(f'<div class="pdf-container"><iframe src="app/static/{pdf_name}" width="100%" height="850px" style="border:none; border-radius:10px;"></iframe></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="pdf-container"><iframe src="/static/{pdf_name}" width="100%" height="850px" style="border:none; border-radius:10px;"></iframe></div>', unsafe_allow_html=True)
     except Exception as e:
         st.error(f"Error al cargar el visor de PDF: {e}")
 
