@@ -400,13 +400,34 @@ import streamlit.components.v1 as components
 
 def display_pdf_viewer(file_path):
     try:
-        # Usamos Base64 para el PDF, lo cual garantiza que sea visible sin bloqueos externos
-        # En la nube, es la única forma 100% confiable de embeber PDFs en iframes
-        base64_pdf = get_base64_of_bin_file(file_path)
-        pdf_display = f'<div class="pdf-container"><iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="850px" style="border:none; border-radius:10px;" type="application/pdf"></iframe></div>'
+        # Método de "Flujo de Datos Inmediato": Lee el manual y lo entrega al navegador directamente
+        with open(file_path, "rb") as f:
+            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+        
+        # HTML5 optimizado para evitar bloqueos de Chrome (Data URI)
+        pdf_display = f"""
+            <div style="background-color: #000; padding: 5px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.2);">
+                <embed 
+                    src="data:application/pdf;base64,{base64_pdf}" 
+                    width="100%" 
+                    height="850px" 
+                    type="application/pdf"
+                    style="border-radius: 8px;"
+                >
+            </div>
+        """
         st.markdown(pdf_display, unsafe_allow_html=True)
+        
+        # Botón de Descarga Siempre Visible como respaldo
+        st.download_button(
+            label="📥 Descargar PDF (Si no carga)",
+            data=base64.b64decode(base64_pdf),
+            file_name="Manual_Café_Devocion.pdf",
+            mime="application/pdf"
+        )
     except Exception as e:
-        st.error(f"Error al cargar el visor de PDF (Incrustación): {e}")
+        st.error(f"Error cargando manual: {e}")
+
 
 # --- APLICACIÓN PRINCIPAL ---
 
